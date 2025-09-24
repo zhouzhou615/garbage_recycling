@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信登录测试工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #07C160;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .description {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #07C160;
+            display: flex;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .card-title i {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #07C160;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(7, 193, 96, 0.2);
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background-color: #07C160;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .btn:hover {
+            background-color: #06AE56;
+        }
+        .btn-secondary {
+            background-color: #3498db;
+        }
+        .btn-secondary:hover {
+            background-color: #2980b9;
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            padding: 20px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-left: 5px solid #2e7d32;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border-left: 5px solid #c62828;
+        }
+        .info {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            border-left: 5px solid #1565c0;
+        }
+        .icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .help-text {
+            color: #777;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .flex-group {
+            display: flex;
+            gap: 15px;
+        }
+        .flex-group > div {
+            flex: 1;
+        }
+        .copy-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+        .step-container {
+            margin-bottom: 25px;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #07C160;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+        }
+        .step-content {
+            display: inline-block;
+            width: calc(100% - 40px);
+            vertical-align: top;
+        }
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .highlight {
+            color: #07C160;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1><i class="fab fa-weixin"></i> 微信登录测试工具</h1>
+        <p class="description">使用微信开发者工具获取真实Code进行后端接口测试</p>
+    </header>
+
+    <div class="card">
+        <div class="card-title">
+            <i class="fas fa-info-circle"></i> 使用说明
+        </div>
+
+        <div class="step-container">
+            <span class="step-number">1</span>
+            <div class="step-content">
+                <p>在微信开发者工具中创建一个小程序项目</p>
+            </div>
+        </div>
+
+        <div class="step-container">
+            <span class="step-number">2</span>
+            <div class="step-content">
+                <p>在小程序页面中添加以下代码：</p>
+                <div class="code-block">
+                    // 获取微信登录Code<br>
+                    wx.login({<br>
+                    success: (res) => {<br>
+                    if (res.code) {<br>
+                    console.log('微信登录Code:', res.code);<br>
+                    // 复制此Code到下面的输入框中<br>
+                    }<br>
+                    }<br>
+                    })
+                </div>
+            </div>
+        </div>
+
+        <div class="step-container">
+            <span class="step-number">3</span>
+            <div class="step-content">
+                <p>将获取到的Code粘贴到下面的输入框中：</p>
+                <div class="form-group">
+                    <label for="wxCode">微信登录Code</label>
+                    <input type="text" id="wxCode" placeholder="从微信开发者工具中获取的Code">
+                </div>
+            </div>
+        </div>
+
+        <div class="step-container">
+            <span class="step-number">4</span>
+            <div class="step-content">
+                <p>填写其他测试参数并发送请求</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <i class="fas fa-cog"></i> 请求参数
+        </div>
+
+        <div class="form-group">
+            <label for="apiUrl">后端API地址</label>
+            <input type="text" id="apiUrl" value="http://localhost:8080/api/auth/wechat/login" placeholder="请输入后端API地址">
+            <p class="help-text">确保地址正确，且后端服务正在运行</p>
+        </div>
+
+        <div class="flex-group">
+            <div class="form-group">
+                <label for="nickname">昵称</label>
+                <input type="text" id="nickname" placeholder="请输入昵称" value="测试用户">
+            </div>
+            <div class="form-group">
+                <label for="avatarUrl">头像URL</label>
+                <input type="text" id="avatarUrl" placeholder="请输入头像URL" value="https://example.com/avatar.jpg">
+            </div>
+        </div>
+
+        <div class="flex-group">
+            <div class="form-group">
+                <label for="identityType">身份类型</label>
+                <select id="identityType">
+                    <option value="1">学生</option>
+                    <option value="2">教师</option>
+                    <option value="3">管理员</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="schoolName">学校名称</label>
+                <input type="text" id="schoolName" placeholder="请输入学校名称" value="示例大学">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="department">院系/部门</label>
+            <input type="text" id="department" placeholder="请输入院系或部门" value="计算机科学系">
+        </div>
+
+        <div class="form-group">
+            <label for="extendedInfo">扩展信息 (JSON格式)</label>
+            <textarea id="extendedInfo" placeholder='{"grade": "2023", "major": "计算机科学与技术"}'>{"grade": "2023", "major": "计算机科学与技术"}</textarea>
+        </div>
+
+        <button id="testBtn" class="btn">发送测试请求</button>
+
+        <div id="status" class="status info">
+            <span class="icon"><i class="fas fa-info-circle"></i></span>
+            <span id="statusText">等待输入微信Code并发送请求</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <i class="fas fa-code"></i> 小程序代码示例
+        </div>
+
+        <p>在微信开发者工具中，创建一个页面并添加以下代码：</p>
+
+        <div class="code-block">
+            // pages/login/login.js<br>
+            Page({<br>
+            onLoad: function() {<br>
+            this.getLoginCode();<br>
+            },<br>
+            <br>
+            getLoginCode: function() {<br>
+            wx.login({<br>
+            success: (res) => {<br>
+            if (res.code) {<br>
+            console.log('微信登录Code:', res.code);<br>
+            // 复制这个code到测试工具中<br>
+            <span class="highlight">// 注意：这个code5分钟有效，且只能使用一次</span><br>
+            } else {<br>
+            console.log('登录失败！' + res.errMsg);<br>
+            }<br>
+            }<br>
+            });<br>
+            },<br>
+            <br>
+            copyCode: function() {<br>
+            wx.setClipboardData({<br>
+            data: this.data.code,<br>
+            success: () => {<br>
+            wx.showToast({<br>
+            title: 'Code已复制'<br>
+            });<br>
+            }<br>
+            });<br>
+            }<br>
+            })
+        </div>
+
+        <p>WXML页面代码：</p>
+
+        <div class="code-block">
+            &lt;!--pages/login/login.wxml--&gt;<br>
+            &lt;view class="container"&gt;<br>
+            &lt;text&gt;微信登录Code获取示例&lt;/text&gt;<br>
+            &lt;button bindtap="getLoginCode"&gt;获取登录Code&lt;/button&gt;<br>
+            &lt;view wx:if="{{code}}"&gt;<br>
+            &lt;text&gt;获取到的Code: {{code}}&lt;/text&gt;<br>
+            &lt;button bindtap="copyCode"&gt;复制Code&lt;/button&gt;<br>
+            &lt;/view&gt;<br>
+            &lt;/view&gt;
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <i class="fas fa-list-alt"></i> 测试结果
+        </div>
+
+        <div class="form-group">
+            <label>请求结果</label>
+            <div class="result" id="result">{
+                "message": "等待测试结果...",
+                "code": 200
+                }</div>
+            <button class="copy-btn" onclick="copyResult()">
+                <i class="fas fa-copy"></i> 复制结果
+            </button>
+        </div>
+
+        <div class="form-group">
+            <label>响应时间</label>
+            <input type="text" id="responseTime" placeholder="未测试" readonly>
+        </div>
+
+        <div class="form-group">
+            <label>HTTP状态码</label>
+            <input type="text" id="statusCode" placeholder="未测试" readonly>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('testBtn').addEventListener('click', function() {
+        const statusEl = document.getElementById('status');
+        const statusTextEl = document.getElementById('statusText');
+        const resultEl = document.getElementById('result');
+        const responseTimeEl = document.getElementById('responseTime');
+        const statusCodeEl = document.getElementById('statusCode');
+
+        // 获取微信Code
+        const wxCode = document.getElementById('wxCode').value;
+        if (!wxCode) {
+            statusEl.className = 'status error';
+            statusTextEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> 请输入微信登录Code';
+            return;
+        }
+
+        // 显示加载状态
+        statusEl.className = 'status info';
+        statusTextEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在调用后端接口...';
+
+        // 获取用户填写的数据
+        const apiUrl = document.getElementById('apiUrl').value;
+        const nickname = document.getElementById('nickname').value;
+        const avatarUrl = document.getElementById('avatarUrl').value;
+        const identityType = document.getElementById('identityType').value;
+        const schoolName = document.getElementById('schoolName').value;
+        const department = document.getElementById('department').value;
+        const extendedInfo = document.getElementById('extendedInfo').value;
+
+        // 记录开始时间
+        const startTime = new Date().getTime();
+
+        // 准备请求数据
+        const requestData = {
+            code: wxCode,
+            nickname: nickname || undefined,
+            avatarUrl: avatarUrl || undefined,
+            identityType: identityType ? parseInt(identityType) : undefined,
+            schoolName: schoolName || undefined,
+            department: department || undefined,
+            extendedInfo: extendedInfo || undefined
+        };
+
+        // 发送请求到后端
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(requestData).toString()
+        })
+            .then(response => {
+                // 记录HTTP状态码
+                statusCodeEl.value = response.status;
+
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 计算响应时间
+                const endTime = new Date().getTime();
+                const responseTime = endTime - startTime;
+                responseTimeEl.value = `${responseTime} ms`;
+
+                // 显示成功状态
+                statusEl.className = 'status success';
+                statusTextEl.innerHTML = '<i class="fas fa-check-circle"></i> 请求成功！';
+
+                // 显示返回数据
+                resultEl.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                // 显示错误状态
+                statusEl.className = 'status error';
+                statusTextEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> 请求失败: ' + error.message;
+
+                resultEl.textContent = `错误信息: ${error.message}\n\n请检查：\n1. 后端服务是否运行\n2. API地址是否正确\n3. 后端CORS配置是否允许前端访问`;
+
+                // 记录响应时间和状态码
+                const endTime = new Date().getTime();
+                const responseTime = endTime - startTime;
+                responseTimeEl.value = `${responseTime} ms`;
+                statusCodeEl.value = 'N/A';
+            });
+    });
+
+    function copyResult() {
+        const resultText = document.getElementById('result').textContent;
+        navigator.clipboard.writeText(resultText).then(() => {
+            alert('结果已复制到剪贴板');
+        });
+    }
+</script>
+</body>
+</html>
