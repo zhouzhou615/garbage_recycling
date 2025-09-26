@@ -1,14 +1,17 @@
-server:
-  port: 8080
-  servlet:
-    context-path: /api
-
 spring:
+  application:
+    name: garbage_recycling
   datasource:
-    url: jdbc:mysql://localhost:3306/test_recycle_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://8.134.191.200/garbage_recycling?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: Hyf20050528@
+    password: Mini-backend1001
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 1800000
   data:
     redis:
       host: localhost
@@ -22,18 +25,22 @@ spring:
           max-wait: -1ms
           max-idle: 8
           min-idle: 0
-
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.stu.entity
 
 mybatis-plus:
-  mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.recycle.entity
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.stu.entity
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -49,14 +56,20 @@ wechat:
   app-secret: 94c634118718272a9bacf52f1921e298
   auth-url: https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code
   test:
-    mode: true
+    mode: false
+
 jwt:
-  #my_jwt_secret1234567890
-  secret: VGhpcyBpcyBhIHZlcnkgc2VjdXJlIGp3dCBzZWNyZXQgd2l0aCBtb3JlIHRoYW4gMzIgYnl0ZXMh
+  secret: dGhpcy1pcy1hbGwtbGVnYWwtYmFzZTY0LXNlY3JldC1rZXk=
   expiration: 86400000
   header: Authorization
 
+app:
+  default:
+    avatar-url: https://your-domain.com/default-avatar.png
+
 logging:
   level:
-    com.recycle: debug
+    com.stu.mapper: debug
     org.springframework.web: info
+    com.stu: debug
+    com.recycle: debug
