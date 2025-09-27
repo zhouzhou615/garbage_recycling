@@ -34,9 +34,6 @@ server:
   servlet:
     context-path: /api
 
-mybatis:
-  mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.stu.entity
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
@@ -63,9 +60,7 @@ jwt:
   expiration: 86400000
   header: Authorization
 
-app:
-  default:
-    avatar-url: https://your-domain.com/default-avatar.png
+
 
 logging:
   level:
