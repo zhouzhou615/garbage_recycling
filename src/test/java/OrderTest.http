@@ -1,0 +1,63 @@
+### 登录获取Token
+POST http://localhost:8080/api/auth/wechat/login
+Content-Type: application/x-www-form-urlencoded
+
+code=test_code_123&nickname=测试用户&avatarUrl=http://example.com/avatar.jpg&identityType=1
+
+> {%
+    client.test("登录成功", function() {
+        client.assert(response.status === 200, "响应状态应为200");
+        client.log("Token: " + response.body.data.token);
+        client.global.set("auth_token", response.body.data.token);
+    });
+%}
+
+### 创建个人回收订单
+POST http://localhost:8080/api/order/personal
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "addressId": 1,
+  "scheduledTime": "2025-08-20 14:00:00",
+  "items": [
+    {
+      "category_id": 3,
+      "category_name": "塑料瓶",
+      "quantity": 6,
+      "unit": "个"
+    }
+  ],
+  "images": [
+    "https://example.com/image1.jpg"
+  ]
+}
+
+> {%
+    client.test("创建订单成功", function() {
+        client.assert(response.status === 200, "响应状态应为200");
+        client.log("订单号: " + response.body.data.orderNo);
+        client.global.set("order_id", response.body.data.orderId);
+    });
+%}
+
+### 获取订单列表
+GET http://localhost:8080/api/order/list?page=1&size=10
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("获取订单列表成功", function() {
+        client.assert(response.status === 200, "响应状态应为200");
+        client.log("订单数量: " + response.body.data.orders.length);
+    });
+%}
+
+### 取消订单
+POST http://localhost:8080/api/order/cancel/{{order_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("取消订单成功", function() {
+        client.assert(response.status === 200, "响应状态应为200");
+    });
+%}
