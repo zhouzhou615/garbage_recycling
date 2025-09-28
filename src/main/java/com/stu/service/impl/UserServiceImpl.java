@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.stu.vo.UserUpdateVO;
 import java.util.Date;
 
 @Service
@@ -68,6 +69,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             baseMapper.insert(user);
             return user;
         }
+    }
+    @Override
+    @Transactional
+    public User completeUserInfo(Long userId, UserUpdateVO userUpdateVO) {
+        // 1. 校验用户是否存在
+        User existingUser = baseMapper.selectById(userId);
+        if (existingUser == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        // 2. 处理extended_info字段
+        String validExtendedInfo = handleValidExtendedInfo(userUpdateVO.getExtendedInfo());
+
+        // 3. 构建更新条件
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(User::getId, userId)
+                .set(User::getNickname, userUpdateVO.getNickname())        // 更新昵称
+                .set(User::getAvatarUrl, userUpdateVO.getAvatarUrl())      // 更新头像
+                .set(User::getIdentityType, userUpdateVO.getIdentityType())
+                .set(User::getSchoolName, userUpdateVO.getSchoolName())
+                .set(User::getDepartment, userUpdateVO.getDepartment())
+                .set(User::getExtendedInfo, validExtendedInfo)
+                .set(User::getUpdatedAt, new Date());
+
+        // 4. 执行更新
+        baseMapper.update(null, updateWrapper);
+
+        // 5. 返回更新后的用户信息
+        return baseMapper.selectById(userId);
+    }
+    @Override
+    public User getUserInfoById(Long userId) {
+        User user = baseMapper.selectById(userId);
+        if (user != null) {
+            // 可以在这里过滤敏感字段，或者创建新的DTO返回
+            user.setDeleted(null); // 排除逻辑删除字段
+        }
+        return user;
     }
 
     /**
