@@ -15,7 +15,7 @@ public class Order {
     private Long addressId; // 地址ID（用户选择的回收地址）
     private Integer orderType; // 订单类型：1-个人回收 2-高校回收
     private Integer status; // 订单状态：1-待上门 0-已取消 等
-    private String items; // 个人订单物品信息(JSON字符串)
+    private String items = "[]"; // JSON字符串存储物品信息; 默认空数组，防止 NOT NULL 约束报错
     private Date scheduledTime; // 预约上门时间
     private String images; // 上传的图片(数组JSON字符串)
     private Long collectorId; // 分配的回收人员ID（可为空）

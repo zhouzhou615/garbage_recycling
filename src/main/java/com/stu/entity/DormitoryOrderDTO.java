@@ -4,6 +4,7 @@ import lombok.Data;
 import jakarta.validation.constraints.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class DormitoryOrderDTO {
@@ -34,4 +35,7 @@ public class DormitoryOrderDTO {
 
     private String schoolName;
     private String department;
+
+    // 新增：前端可选传入的物品明细（统一写入订单items字段）
+    private List<Map<String, Object>> items;
 }

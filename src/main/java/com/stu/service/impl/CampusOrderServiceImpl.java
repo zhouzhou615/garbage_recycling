@@ -62,6 +62,17 @@ public class CampusOrderServiceImpl implements CampusOrderService {
         order.setOrderType(2);// 订单类型为高校订单
         order.setCampusType(1);// 校园订单类型为旧教材回收
         order.setStatus(1);// 设置订单初始状态为待处理
+        // 根据前端是否传 items 决定写入内容
+        try {
+            if (orderDTO.getItems() != null && !orderDTO.getItems().isEmpty()) {
+                order.setItems(objectMapper.writeValueAsString(orderDTO.getItems()));
+            } else {
+                order.setItems("[]");
+            }
+        } catch (Exception ex) {
+            log.warn("[CampusOrder-Textbook] 序列化items失败, 使用空数组: {}", ex.getMessage());
+            order.setItems("[]");
+        }
 
         Map<String, Object> campusInfo = new HashMap<>();// 创建存储高校订单特有信息的Map
         campusInfo.put("textbookType", orderDTO.getTextbookType());// 教材类型
@@ -105,6 +116,16 @@ public class CampusOrderServiceImpl implements CampusOrderService {
         order.setOrderType(2);
         order.setCampusType(2);
         order.setStatus(1);
+        try {
+            if (orderDTO.getItems() != null && !orderDTO.getItems().isEmpty()) {
+                order.setItems(objectMapper.writeValueAsString(orderDTO.getItems()));
+            } else {
+                order.setItems("[]");
+            }
+        } catch (Exception ex) {
+            log.warn("[CampusOrder-Dormitory] 序列化items失败, 使用空数组: {}", ex.getMessage());
+            order.setItems("[]");
+        }
 
         Map<String, Object> campusInfo = new HashMap<>();
         campusInfo.put("dormitoryBuilding", orderDTO.getDormitoryBuilding());
