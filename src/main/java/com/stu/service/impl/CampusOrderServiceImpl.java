@@ -22,10 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import  com.stu.service.PriceCalculationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class CampusOrderServiceImpl implements CampusOrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(CampusOrderServiceImpl.class);
     public static final int CAMPUS_USER = 2;
     @Autowired
     private SnowflakeIdGenerator idGenerator;// 用于生成唯一订单号
@@ -47,8 +50,9 @@ public class CampusOrderServiceImpl implements CampusOrderService {
         if (!validateCampusUser(userId)) {
             return Result.error("只有高校用户可以下单");
         }
-        // 地址校验
+        log.debug("[CampusOrder-Textbook] 校验地址 addressId={}, userId={}", orderDTO.getAddressId(), userId);
         if (orderDTO.getAddressId() == null || !userAddressService.validateUserAddress(orderDTO.getAddressId(), userId)) {
+            log.warn("[CampusOrder-Textbook] 地址校验失败 addressId={}, userId={}", orderDTO.getAddressId(), userId);
             return Result.error("地址无效或不属于当前用户");
         }
         Order order = new Order();// 新建订单对象
@@ -75,7 +79,9 @@ public class CampusOrderServiceImpl implements CampusOrderService {
             }
             order.setEstimatedAmount(calculateTextbookAmount(orderDTO));
             orderMapper.insert(order);
-            return Result.success().put("orderNo", order.getOrderNo());
+            return Result.success()
+                    .put("orderNo", order.getOrderNo())
+                    .put("estimatedAmount", order.getEstimatedAmount());
         } catch (Exception e) {
             throw new RuntimeException("创建教材回收订单失败", e);
         }
@@ -87,8 +93,9 @@ public class CampusOrderServiceImpl implements CampusOrderService {
         if (!validateCampusUser(userId)) {
             return Result.error("只有高校用户可以下单");
         }
-        // 地址校验
+        log.debug("[CampusOrder-Dormitory] 校验地址 addressId={}, userId={}", orderDTO.getAddressId(), userId);
         if (orderDTO.getAddressId() == null || !userAddressService.validateUserAddress(orderDTO.getAddressId(), userId)) {
+            log.warn("[CampusOrder-Dormitory] 地址校验失败 addressId={}, userId={}", orderDTO.getAddressId(), userId);
             return Result.error("地址无效或不属于当前用户");
         }
         Order order = new Order();
@@ -115,7 +122,9 @@ public class CampusOrderServiceImpl implements CampusOrderService {
             }
             order.setEstimatedAmount(calculateDormitoryAmount(orderDTO));
             orderMapper.insert(order);
-            return Result.success().put("orderNo", order.getOrderNo());
+            return Result.success()
+                    .put("orderNo", order.getOrderNo())
+                    .put("estimatedAmount", order.getEstimatedAmount());
         } catch (Exception e) {
             throw new RuntimeException("创建宿舍批量回收订单失败", e);
         }

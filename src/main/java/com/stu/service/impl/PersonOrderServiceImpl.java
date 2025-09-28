@@ -3,6 +3,7 @@ package com.stu.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.stu.config.PriceConfig;
 import com.stu.entity.Order;
+import com.stu.entity.UserAddress;
 import com.stu.mapper.OrderMapper;
 import com.stu.service.PersonOrderService;
 import com.stu.service.PriceCalculationService;
@@ -21,10 +22,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @Service
 public class PersonOrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements PersonOrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(PersonOrderServiceImpl.class);
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -47,11 +52,18 @@ public class PersonOrderServiceImpl extends ServiceImpl<OrderMapper, Order> impl
             // 设置地址ID并校验
             if (orderData.containsKey("addressId")) {
                 Long addressId = Long.valueOf(orderData.get("addressId").toString());
-                // 校验地址是否属于当前用户，防止外键 & 越权
-                if (!userAddressService.validateUserAddress(addressId, userId)) {
-                    return Result.error("地址无效或不属于当前用户");
+                log.debug("[PersonalOrder] 校验地址 addressId={}, userId={}", addressId, userId);
+                UserAddress addr = userAddressService.getById(addressId);
+                if (addr == null) {
+                    log.warn("[PersonalOrder] 地址不存在 addressId={}, userId={}", addressId, userId);
+                    return Result.error("地址不存在");
+                }
+                if (!addr.getUserId().equals(userId)) {
+                    log.warn("[PersonalOrder] 地址不属于当前用户 addressId={}, ownerUserId={}, currentUserId={}", addressId, addr.getUserId(), userId);
+                    return Result.error("地址不属于当前用户");
                 }
                 order.setAddressId(addressId);
+                log.debug("[PersonalOrder] 地址校验通过 addressId={}, userId={}", addressId, userId);
             } else {
                 return Result.error("地址ID不能为空");
             }

@@ -1,132 +1,140 @@
-### 登录获取个人用户Token
+### 1. 登录个人用户
 POST http://localhost:8080/api/auth/wechat/login
 Content-Type: application/x-www-form-urlencoded
 
-code=test_code_person&nickname=测试个人用户&avatarUrl=http://example.com/avatar.jpg&identityType=1
+code=test_code_person&nickname=测试个人&avatarUrl=http://example.com/p1.jpg&identityType=1
 
 > {%
-    client.test("个人登录成功", function() {
-        client.assert(response.status === 200, "响应状态应为200");
-        client.log("Personal Token: " + response.body.data.token);
-        client.global.set("personal_token", response.body.data.token);
-    });
+  client.test("个人登录成功", function() {
+    client.assert(response.status === 200, "状态应为200");
+    client.global.set("personal_token", response.body.data.token);
+  });
 %}
 
-### 登录获取高校用户Token
-POST http://localhost:8080/api/auth/wechat/login
-Content-Type: application/x-www-form-urlencoded
+### 2. 创建个人地址
+POST http://localhost:8080/api/address/create
+Content-Type: application/json
+Authorization: Bearer {{personal_token}}
 
-code=test_code_campus&nickname=测试高校用户&avatarUrl=http://example.com/avatar2.jpg&identityType=2
+{
+  "addressLabel": "家",
+  "detailAddress": "广东省深圳市南山区高新园一期1号楼",
+  "contactName": "张三",
+  "contactPhone": "13800000000",
+  "lat": 22.540,
+  "lng": 113.950,
+  "isDefault": 1
+}
 
 > {%
-    client.test("高校登录成功", function() {
-        client.assert(response.status === 200, "响应状态应为200");
-        client.log("Campus Token: " + response.body.data.token);
-        client.global.set("campus_token", response.body.data.token);
-    });
+  client.test("创建个人地址成功", function() {
+    client.assert(response.status === 200, "状态应为200");
+    client.global.set("personal_address_id", response.body.data.addressId);
+  });
 %}
 
-### 创建个人回收订单
+### 3. 个人下单
 POST http://localhost:8080/api/order/personal
 Content-Type: application/json
 Authorization: Bearer {{personal_token}}
 
 {
-  "addressId": 1,
-  "scheduledTime": "2025-08-20 14:00:00",
-  "items": [
-    {
-      "category_id": 3,
-      "category_name": "塑料瓶",
-      "quantity": 6,
-      "unit": "个"
-    }
-  ],
-  "images": [
-    "https://example.com/image1.jpg"
-  ]
+  "addressId": {{personal_address_id}},
+  "scheduledTime": "2025-10-01 09:00:00",
+  "items": [ { "category_id": 1, "category_name": "废纸", "quantity": 3, "unit": "袋" } ],
+  "images": ["https://example.com/personal1.jpg"]
 }
 
 > {%
-    client.test("创建个人订单成功", function() {
-        client.assert(response.status === 200, "响应状态应为200");
-        client.log("订单号: " + response.body.data.orderNo);
-        client.global.set("personal_order_id", response.body.data.orderId);
-    });
+  client.test("个人下单成功", function() {
+    client.assert(response.status === 200, "状态应为200");
+    client.global.set("personal_order_no", response.body.data.orderNo);
+  });
 %}
 
-### 获取个人订单列表
-GET http://localhost:8080/api/order/list?page=1&size=10
-Authorization: Bearer {{personal_token}}
+### 4. 登录高校用户
+POST http://localhost:8080/api/auth/wechat/login
+Content-Type: application/x-www-form-urlencoded
+
+code=test_code_campus&nickname=测试高校用户&avatarUrl=http://example.com/campus1.jpg&identityType=2&schoolName=示例大学&department=计算机学院
 
 > {%
-    client.test("获取个人订单列表成功", function() {
-        client.assert(response.status === 200, "响应状态应为200");
-        client.log("订单数量: " + response.body.data.orders.length);
-    });
+  client.test("高校登录成功", function() {
+    client.assert(response.status === 200, "状态应为200");
+    client.global.set("campus_token", response.body.data.token);
+  });
 %}
 
-### 取消个人订单
-POST http://localhost:8080/api/order/cancel/{{personal_order_id}}
-Authorization: Bearer {{personal_token}}
+### 5. 创建高校地址
+POST http://localhost:8080/api/address/create
+Content-Type: application/json
+Authorization: Bearer {{campus_token}}
+
+{
+  "addressLabel": "宿舍",
+  "detailAddress": "示例大学西区16栋101",
+  "contactName": "李四",
+  "contactPhone": "13900000001",
+  "lat": 22.541,
+  "lng": 113.951,
+  "isDefault": 1
+}
 
 > {%
-    client.test("取消个人订单成功", function() {
-        client.assert(response.status === 200, "响应状态应为200");
-    });
+  client.test("高校地址创建成功", function() {
+    client.assert(response.status === 200, "状态应为200");
+    client.global.set("campus_address_id", response.body.data.addressId);
+  });
 %}
 
-### 创建高校教材回收订单（使用高校用户 token）
+### 6. 高校教材下单
 POST http://localhost:8080/api/campusOrder/textbook
 Content-Type: application/json
 Authorization: Bearer {{campus_token}}
 
 {
-  "addressId": 1,
-  "scheduledTime": "2025-09-30 10:00:00",
-  "textbookType": "高等数学",
+  "addressId": {{campus_address_id}},
+  "scheduledTime": "2025-10-01 10:00:00",
+  "textbookType": "高数教材",
   "quantity": 5,
   "unit": "本",
   "condition": "八成新",
-  "pickupLocation": "教学楼A门口",
-  "schoolName": "某大学",
-  "department": "数学系",
-  "images": [
-    "https://example.com/textbook1.jpg",
-    "https://example.com/textbook2.jpg"
-  ]
+  "pickupLocation": "图书馆门口",
+  "schoolName": "示例大学",
+  "department": "计算机学院",
+  "images": ["https://example.com/textbook_a.jpg"]
 }
 
 > {%
-    client.test("创建高校教材订单成功", function() {
-        client.assert(response.status === 200, "状态200");
-        client.global.set("campus_textbook_order_no", response.body.data.orderNo);
-    });
+  client.test("高校教材下单成功", function() {
+    client.assert(response.status === 200, "状态应为200");
+    client.log("预估金额: " + response.body.data.estimatedAmount);
+    client.global.set("campus_textbook_order_no", response.body.data.orderNo);
+  });
 %}
 
-### 创建高校宿舍批量回收订单（使用高校用户 token）
+### 7. 高校宿舍下单
 POST http://localhost:8080/api/campusOrder/dormitory
 Content-Type: application/json
 Authorization: Bearer {{campus_token}}
 
 {
-  "addressId": 1,
-  "scheduledTime": "2025-010-21 11:30:00",
-  "dormitoryBuilding": "1号楼",
+  "addressId": {{campus_address_id}},
+  "scheduledTime": "2025-10-01 11:30:00",
+  "dormitoryBuilding": "16栋",
   "roomRange": "101-110",
-  "recyclingCategories": ["废纸", "塑料瓶"],
-  "contactPerson": "张三",
-  "contactPhone": "13812345678",
-  "schoolName": "某大学",
-  "department": "物理系",
-  "images": [
-    "https://example.com/dorm1.jpg"
-  ]
+  "recyclingCategories": ["废纸","塑料瓶"],
+  "contactPerson": "赵六",
+  "contactPhone": "13811112222",
+  "schoolName": "示例大学",
+  "department": "物理学院",
+  "images": ["https://example.com/dorm_a.jpg"]
 }
 
 > {%
-    client.test("创建高校宿舍订单成功", function() {
-        client.assert(response.status === 200, "状态200");
-        client.global.set("campus_dorm_order_no", response.body.data.orderNo);
-    });
+  client.test("高校宿舍下单成功", function() {
+    client.assert(response.status === 200, "状态应为200");
+    client.log("预估金额: " + response.body.data.estimatedAmount);
+    client.global.set("campus_dormitory_order_no", response.body.data.orderNo);
+  });
 %}
