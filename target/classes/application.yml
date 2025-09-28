@@ -1,8 +1,14 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
 spring:
   application:
     name: garbage_recycling
   datasource:
-    url: jdbc:mysql://8.134.191.200/garbage_recycling?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    # 修改: 使用真实数据库名 garbage_recycling 替换占位符 your_database_name
+    url: jdbc:mysql://8.134.191.200:3306/garbage_recycling?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: Mini-backend1001
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -12,11 +18,12 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
       max-lifetime: 1800000
+      connection-test-query: SELECT 1
   data:
     redis:
       host: localhost
       port: 6379
-      password:
+      password: null
       database: 0
       timeout: 3000ms
       lettuce:
@@ -27,16 +34,10 @@ spring:
           min-idle: 0
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
-    time-zone: GMT+8
-
-server:
-  port: 8080
-  servlet:
-    context-path: /api
-
+    time-zone: Asia/Shanghai
 
 mybatis-plus:
-  mapper-locations: classpath*:mapper/**/*.xml
+  mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.stu.entity
   configuration:
     map-underscore-to-camel-case: true
@@ -53,18 +54,33 @@ wechat:
   app-secret: 94c634118718272a9bacf52f1921e298
   auth-url: https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code
   test:
-    mode: false
+    mode: true
 
 jwt:
-  secret: dGhpcy1pcy1hbGwtbGVnYWwtYmFzZTY0LXNlY3JldC1rZXk=
+  secret: VGhpcyBpcyBhIHZlcnkgc2VjdXJlIGp3dCBzZWNyZXQgd2l0aCBtb3JlIHRoYW4gMzIgYnl0ZXMh
   expiration: 86400000
   header: Authorization
 
-
+app:
+  upload-dir: ./uploads
+  images:
+    category-path: ${app.upload-dir}/category-images
+    identity-bg-path: ${app.upload-dir}/identity-bg
 
 logging:
   level:
-    com.stu.mapper: debug
-    org.springframework.web: info
     com.stu: debug
-    com.recycle: debug
+    org.springframework.web: info
+
+recycling:
+  price:
+    pilot:
+      period: true
+      premium-rate: 0.20
+      waste_paper: 1.20
+      plastic_bottle: 2.20
+      old_clothes: 0.60
+    base:
+      waste_paper: 1.00
+      plastic_bottle: 2.00
+      old_clothes: 0.50

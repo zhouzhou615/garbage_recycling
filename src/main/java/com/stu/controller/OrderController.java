@@ -1,5 +1,6 @@
 package com.stu.controller;
 
+import com.stu.service.PersonOrderService;
 import com.stu.service.OrderService;
 import com.stu.util.JwtUtil;
 import com.stu.vo.Result;
@@ -19,11 +20,12 @@ import java.util.Map;
 public class OrderController {
 
     @Autowired
-    private OrderService orderService;
+    private PersonOrderService personOrderService;
 
     @Autowired
     private JwtUtil jwtUtil;
 
+    // 创建个人回收订单
     @PostMapping("/personal")
     @Operation(summary = "创建个人回收订单", description = "用户提交回收订单信息，包括地址、物品类型、预约时间等")
     public Result createPersonalOrder(
@@ -33,9 +35,10 @@ public class OrderController {
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader != null && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         Long userId = jwtUtil.getUserIdFromToken(token);
-        return orderService.createPersonalOrder(orderData, userId);
+        return personOrderService.createPersonalOrder(orderData, userId);
     }
 
+    // 获取用户订单列表
     @GetMapping("/list")
     @Operation(summary = "获取用户订单列表", description = "分页查询当前用户的所有回收订单，按创建时间倒序排列")
     public Result getUserOrders(
@@ -47,9 +50,10 @@ public class OrderController {
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader != null && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         Long userId = jwtUtil.getUserIdFromToken(token);
-        return orderService.getUserOrders(userId, page, size);
+        return personOrderService.getUserOrders(userId, page, size);
     }
 
+    // 取消订单（示例，需根据实际参数完善）
     @PostMapping("/cancel/{orderId}")
     @Operation(summary = "取消订单", description = "仅允许取消状态为'待接单'的订单")
     public Result cancelOrder(
@@ -59,6 +63,7 @@ public class OrderController {
             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader != null && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         Long userId = jwtUtil.getUserIdFromToken(token);
-        return orderService.cancelOrder(orderId, userId);
+        return personOrderService.cancelOrder(orderId, userId);
     }
 }
+

@@ -1,0 +1,155 @@
+package com.stu.service.impl;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.stu.config.PriceConfig;
+import com.stu.entity.Order;
+import com.stu.entity.UserAddress;
+import com.stu.mapper.OrderMapper;
+import com.stu.service.PersonOrderService;
+import com.stu.service.PriceCalculationService;
+import com.stu.service.UserAddressService;
+import com.stu.util.JwtUtil;
+import com.stu.vo.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+
+
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+@Service
+public class PersonOrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements PersonOrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(PersonOrderServiceImpl.class);
+
+    @Autowired
+    private JwtUtil jwtUtil;
+    @Autowired
+    private UserAddressService userAddressService; // 新增：用于校验地址归属
+
+    @Override
+    @Transactional
+    public Result createPersonalOrder(Map<String, Object> orderData, Long userId) {
+        try {
+            Order order = new Order();
+            ObjectMapper objectMapper = new ObjectMapper();
+            // 生成唯一订单号
+            String orderNo = "ORD" + UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase();
+            order.setOrderNo(orderNo);
+            order.setUserId(userId);
+            order.setOrderType(1); // 1表示个人回收订单
+            order.setStatus(1); // 1表示待上门
+
+            // 设置地址ID并校验
+            if (orderData.containsKey("addressId")) {
+                Long addressId = Long.valueOf(orderData.get("addressId").toString());
+                log.debug("[PersonalOrder] 校验地址 addressId={}, userId={}", addressId, userId);
+                UserAddress addr = userAddressService.getById(addressId);
+                if (addr == null) {
+                    log.warn("[PersonalOrder] 地址不存在 addressId={}, userId={}", addressId, userId);
+                    return Result.error("地址不存在");
+                }
+                if (!addr.getUserId().equals(userId)) {
+                    log.warn("[PersonalOrder] 地址不属于当前用户 addressId={}, ownerUserId={}, currentUserId={}", addressId, addr.getUserId(), userId);
+                    return Result.error("地址不属于当前用户");
+                }
+                order.setAddressId(addressId);
+                log.debug("[PersonalOrder] 地址校验通过 addressId={}, userId={}", addressId, userId);
+            } else {
+                return Result.error("地址ID不能为空");
+            }
+
+            // 设置预约时间
+            if (orderData.containsKey("scheduledTime")) {
+                String timeStr = orderData.get("scheduledTime").toString();
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    Date scheduledTime = sdf.parse(timeStr);
+                    order.setScheduledTime(scheduledTime);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    return Result.error("预约时间格式错误");
+                }
+            }
+
+            // 设置物品信息（JSON格式）
+            if (orderData.containsKey("items")) {
+                String itemsJson = objectMapper.writeValueAsString(orderData.get("items"));
+                order.setItems(itemsJson);
+                order.setEstimatedAmount(calculateEstimatedAmount(itemsJson));
+            }
+
+            // 设置图片信息（JSON格式）
+            if (orderData.containsKey("images")) {
+                String imagesJson = objectMapper.writeValueAsString(orderData.get("images"));
+                order.setImages(imagesJson);
+            }
+
+            order.setCreatedAt(new Date());
+            order.setUpdatedAt(new Date());
+
+            // 保存订单
+            int result = baseMapper.insert(order);
+            System.out.println("插入结果: " + result + ", 订单ID: " + order.getId());
+
+            Map<String, Object> resultData = new HashMap<>();
+            resultData.put("orderNo", orderNo);
+            resultData.put("orderId", order.getId());
+            return Result.success(resultData);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("创建订单失败: " + e.getMessage());
+        }
+    }
+
+    // 计算预估金额的方法（需要根据实际业务逻辑实现）
+    private BigDecimal calculateEstimatedAmount(String itemsJson) {
+        // 个人回收全部不计价，直接返回0
+        return BigDecimal.ZERO;
+    }
+
+    // 实现获取用户订单列表的逻辑
+    // 可以使用MyBatis-Plus的分页功能
+    public Result getUserOrders(Long userId, Integer page, Integer size) {
+        Page<Order> orderPage = new Page<>(page, size);
+        QueryWrapper<Order> query = new QueryWrapper<>();
+        query.eq("user_id", userId);
+        orderPage = baseMapper.selectPage(orderPage, query);
+
+        Map<String, Object> resultData = new HashMap<>();
+        resultData.put("orders", orderPage.getRecords());
+        resultData.put("total", orderPage.getTotal());
+        return Result.success(resultData);
+    }
+
+
+    // 实现取消订单的逻辑
+    // 需要检查订单是否属于该用户，以及订单状态是否允许取消
+    @Override
+    @Transactional
+    public Result cancelOrder(Long orderId, Long userId) {
+        Order order = baseMapper.selectById(orderId);
+        if (order == null || !order.getUserId().equals(userId)) {
+            return Result.error("订单不存在或不属于该用户");
+        }
+        if (order.getStatus() != 1) { // 1表示待上门
+            return Result.error("订单当前状态不允许取消");
+        }
+        order.setStatus(0); // 0表示已取消
+        order.setUpdatedAt(new Date());
+        baseMapper.updateById(order);
+
+        Map<String, Object> resultData = new HashMap<>();
+        resultData.put("message", "订单取消成功");
+        return Result.success(resultData);
+    }
+}

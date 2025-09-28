@@ -18,7 +18,6 @@ public class Category implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
-
     @TableId(type = IdType.AUTO)
     @Schema(description = "分类ID", example = "1")
     private Long id;
@@ -39,6 +38,7 @@ public class Category implements Serializable {
     @TableField("sort")
     @Schema(description = "排序权重（数字越小越靠前）", example = "10")
     private Integer sort;
+    private Boolean isActive;
 
     @TableField("description")
     @Schema(description = "分类描述", example = "包括纸张、塑料、玻璃等可循环利用的物品")

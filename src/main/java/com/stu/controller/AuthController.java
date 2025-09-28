@@ -1,5 +1,6 @@
 package com.stu.controller;
 
+
 import com.stu.entity.User;
 import com.stu.service.UserService;
 import com.stu.util.JwtUtil;
@@ -42,10 +43,15 @@ public class AuthController {
             @Parameter(description = "用户昵称（可选）")
             @RequestParam(required = false) String nickname,
             @Parameter(description = "用户头像URL（可选）")
-            @RequestParam(required = false) String avatarUrl) {
+            @RequestParam(required = false) String avatarUrl,
+            @RequestParam(required = false, defaultValue = "1") Integer identityType,
+            @RequestParam(required = false) String schoolName,
+            @RequestParam(required = false) String department,
+            @RequestParam(required = false) String extendedInfo) {
         try {
             logger.info("微信登录请求: code={}", code);
 
+            // 1. 获取openid
             Map<String, String> wechatInfo = weChatUtil.getOpenidByCode(code);
             String openid = wechatInfo.get("openid");
             String unionid = wechatInfo.get("unionid");
@@ -62,32 +68,28 @@ public class AuthController {
                 return Result.error("微信登录失败，无法获取用户信息");
             }
 
+            // 2. 查询或创建用户
             User user = new User();
             user.setOpenid(openid);
             user.setUnionid(unionid);
             user.setNickname(nickname);
             user.setAvatarUrl(avatarUrl);
-            user.setIdentityType(1); // 默认个人用户
+            user.setIdentityType(identityType);
+            user.setSchoolName(schoolName);
+            user.setDepartment(department);
+            user.setExtendedInfo(extendedInfo);
 
             User savedUser = userService.createOrUpdateUser(user);
             logger.info("用户登录成功: userId={}, openid={}", savedUser.getId(), savedUser.getOpenid());
 
+            // 3. 生成JWT Token
             String token = jwtUtil.generateToken(savedUser.getId(), openid);
 
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("id", savedUser.getId());
-            userInfo.put("openid", savedUser.getOpenid());
-            userInfo.put("nickname", savedUser.getNickname());
-            userInfo.put("avatarUrl", savedUser.getAvatarUrl());
-            userInfo.put("identityType", savedUser.getIdentityType());
-            userInfo.put("schoolName", savedUser.getSchoolName());
-            userInfo.put("department", savedUser.getDepartment());
-
+            // 4. 返回结果
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("message", "登录成功");
             resultData.put("token", token);
-            resultData.put("user", userInfo);
-
+            resultData.put("user", savedUser);
             return Result.success(resultData);
 
         } catch (Exception e) {
@@ -208,6 +210,7 @@ public class AuthController {
 
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("message", "Token有效");
+            //resultData.put("user", user);
             resultData.put("user", userInfo);
             return Result.success(resultData);
 

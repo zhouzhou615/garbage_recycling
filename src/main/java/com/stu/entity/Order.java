@@ -32,10 +32,13 @@ public class Order {
 
     @Schema(description = "回收物品信息（JSON字符串，格式如[{\"categoryId\":1,\"name\":\"废纸\",\"weight\":2.5}]）",
             example = "[{\"categoryId\":1,\"name\":\"废纸\",\"weight\":2.5},{\"categoryId\":3,\"name\":\"塑料瓶\",\"weight\":1.2}]")
-    private String items; // JSON字符串存储物品信息
+    private String items = "[]"; // JSON字符串存储物品信息
 
     @Schema(description = "预约回收时间", example = "2024-09-30 15:30:00")
     private Date scheduledTime;
+    // 在Order.java中添加高校订单特有字段
+    @TableField("campus_type")
+    private Integer campusType; // 高校订单子类型: 1-旧教材回收 2-宿舍批量回收
 
     @Schema(description = "物品图片URL集合（JSON字符串，存储回收物品的现场照片）",
             example = "[\"https://example.com/imgs/order1001-1.jpg\",\"https://example.com/imgs/order1001-2.jpg\"]")
@@ -53,6 +56,8 @@ public class Order {
 
     @Schema(description = "最终金额（元，回收完成后确认的实际金额）", example = "16.20")
     private BigDecimal finalAmount; // 最终金额
+    @TableField("campus_info")
+    private String campusInfo; // 高校订单特有信息(JSON)
 
     @TableField(fill = FieldFill.INSERT)
     @Schema(description = "订单创建时间", example = "2024-09-27 10:15:30")
