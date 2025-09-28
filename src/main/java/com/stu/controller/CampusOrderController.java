@@ -18,14 +18,14 @@ public class CampusOrderController {
     private JwtUtil jwtUtil;
     // 创建教材回收订单
     @PostMapping("/textbook")
-    public Result createTextbookOrder(@RequestBody TextbookOrderDTO orderDTO,
+    public Result createTextbookOrder(@RequestBody @jakarta.validation.Valid TextbookOrderDTO orderDTO,
                                       @RequestHeader("Authorization") String authHeader) {
         Long userId = getUserIdFromHeader(authHeader);
         return campusOrderService.createTextbookOrder(orderDTO, userId);
     }
     // 创建宿舍回收订单
     @PostMapping("/dormitory")
-    public Result createDormitoryOrder(@RequestBody DormitoryOrderDTO orderDTO,
+    public Result createDormitoryOrder(@RequestBody @jakarta.validation.Valid DormitoryOrderDTO orderDTO,
                                        @RequestHeader("Authorization") String authHeader) {
         Long userId = getUserIdFromHeader(authHeader);
         return campusOrderService.createDormitoryOrder(orderDTO, userId);

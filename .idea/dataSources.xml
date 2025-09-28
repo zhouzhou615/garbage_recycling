@@ -30,7 +30,7 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="0@localhost" uuid="31203c08-fc75-41d3-b6ca-6f6fa9aa96c4">
+    <data-source source="LOCAL" name="0@localhost" uuid="a4b6a80b-0325-48ba-b52b-edd217472e8c">
       <driver-ref>redis</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>

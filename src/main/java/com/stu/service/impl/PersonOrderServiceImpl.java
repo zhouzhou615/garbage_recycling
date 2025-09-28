@@ -6,6 +6,7 @@ import com.stu.entity.Order;
 import com.stu.mapper.OrderMapper;
 import com.stu.service.PersonOrderService;
 import com.stu.service.PriceCalculationService;
+import com.stu.service.UserAddressService;
 import com.stu.util.JwtUtil;
 import com.stu.vo.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,8 @@ public class PersonOrderServiceImpl extends ServiceImpl<OrderMapper, Order> impl
 
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private UserAddressService userAddressService; // 新增：用于校验地址归属
 
     @Override
     @Transactional
@@ -41,9 +44,16 @@ public class PersonOrderServiceImpl extends ServiceImpl<OrderMapper, Order> impl
             order.setOrderType(1); // 1表示个人回收订单
             order.setStatus(1); // 1表示待上门
 
-            // 设置地址ID
+            // 设置地址ID并校验
             if (orderData.containsKey("addressId")) {
-                order.setAddressId(Long.valueOf(orderData.get("addressId").toString()));
+                Long addressId = Long.valueOf(orderData.get("addressId").toString());
+                // 校验地址是否属于当前用户，防止外键 & 越权
+                if (!userAddressService.validateUserAddress(addressId, userId)) {
+                    return Result.error("地址无效或不属于当前用户");
+                }
+                order.setAddressId(addressId);
+            } else {
+                return Result.error("地址ID不能为空");
             }
 
             // 设置预约时间

@@ -9,6 +9,7 @@ import com.stu.entity.User;
 import com.stu.mapper.OrderMapper;
 import com.stu.service.CampusOrderService;
 import com.stu.service.UserService;
+import com.stu.service.UserAddressService;
 import com.stu.vo.Result;
 import com.stu.util.SnowflakeIdGenerator;
 
@@ -37,12 +38,18 @@ public class CampusOrderServiceImpl implements CampusOrderService {
     private ObjectMapper objectMapper;
     @Autowired
     private  PriceCalculationService priceCalculationService;
+    @Autowired
+    private UserAddressService userAddressService; // 新增：地址归属校验服务
 
     @Override
     @Transactional
     public Result createTextbookOrder(TextbookOrderDTO orderDTO, Long userId) {
         if (!validateCampusUser(userId)) {
             return Result.error("只有高校用户可以下单");
+        }
+        // 地址校验
+        if (orderDTO.getAddressId() == null || !userAddressService.validateUserAddress(orderDTO.getAddressId(), userId)) {
+            return Result.error("地址无效或不属于当前用户");
         }
         Order order = new Order();// 新建订单对象
         order.setOrderNo(generateOrderNo());// 生成唯一订单号
@@ -79,6 +86,10 @@ public class CampusOrderServiceImpl implements CampusOrderService {
     public Result createDormitoryOrder(DormitoryOrderDTO orderDTO, Long userId) {
         if (!validateCampusUser(userId)) {
             return Result.error("只有高校用户可以下单");
+        }
+        // 地址校验
+        if (orderDTO.getAddressId() == null || !userAddressService.validateUserAddress(orderDTO.getAddressId(), userId)) {
+            return Result.error("地址无效或不属于当前用户");
         }
         Order order = new Order();
         order.setOrderNo(generateOrderNo());
