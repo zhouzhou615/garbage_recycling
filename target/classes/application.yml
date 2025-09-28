@@ -4,6 +4,8 @@ server:
     context-path: /api
 
 spring:
+  application:
+    name: garbage_recycling
   datasource:
     # 修改: 使用真实数据库名 garbage_recycling 替换占位符 your_database_name
     url: jdbc:mysql://8.134.191.200:3306/garbage_recycling?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
@@ -11,6 +13,11 @@ spring:
     password: Mini-backend1001
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 1800000
       connection-test-query: SELECT 1
   data:
     redis:
@@ -53,6 +60,12 @@ jwt:
   secret: VGhpcyBpcyBhIHZlcnkgc2VjdXJlIGp3dCBzZWNyZXQgd2l0aCBtb3JlIHRoYW4gMzIgYnl0ZXMh
   expiration: 86400000
   header: Authorization
+
+app:
+  upload-dir: ./uploads
+  images:
+    category-path: ${app.upload-dir}/category-images
+    identity-bg-path: ${app.upload-dir}/identity-bg
 
 logging:
   level:
