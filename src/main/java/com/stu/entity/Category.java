@@ -9,12 +9,14 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.io.Serial;
 
 @Data
 @TableName("category")
 @Schema(description = "分类实体类，存储垃圾回收物品的分类信息（如可回收物、有害垃圾等）")
 public class Category implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
@@ -29,9 +31,6 @@ public class Category implements Serializable {
     @Schema(description = "父分类ID（0表示一级分类）", example = "0")
     private Long parentId;
 
-    @TableField("icon")
-    @Schema(description = "分类图标URL", example = "https://example.com/icons/recycle.png")
-    private String icon;
 
     @TableField("price_per_kg")
     @Schema(description = "每公斤回收价格（元）", example = "2.5")

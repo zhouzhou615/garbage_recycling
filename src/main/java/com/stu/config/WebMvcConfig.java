@@ -13,7 +13,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.File;
 
-
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
@@ -22,8 +21,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private JwtInterceptor jwtInterceptor;
 
-    @Value("${app.upload-dir:./uploads}")
-    private String uploadDir;
+    @Value("${app.images.category-path}")
+    private String categoryImagePath;
+
+    @Value("${app.images.identity-bg-path}")
+    private String identityBgPath;
+
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -36,15 +39,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/auth/checkToken",
                         "/identity/all",
                         "/identity/debug/**",
-                        "/identity/proxy/**",  // 排除图片代理接口
+                        "/identity/proxy/**",
+                        "/category/**",           // 分类接口无需认证
                         "/test/**",
                         "/debug/**",
                         "/error",
                         "/swagger-ui/**",
                         "/swagger-resources/**",
                         "/v3/api-docs/**",
-                        "/image/static/**",    // 静态资源
-                        "/static/**"
+                        "/api/images/**",         // 修正：静态资源路径（包含context-path）
+                        "/images/**"              // 保留：兼容性路径
                 );
 
         logger.info("JWT拦截器配置完成");
@@ -54,44 +58,25 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         logger.info("开始配置静态资源映射...");
 
-        // 处理上传目录
-        File baseDir = new File(uploadDir);
-        String absolutePath = baseDir.getAbsolutePath();
-        if (!absolutePath.endsWith(File.separator)) {
-            absolutePath += File.separator;
-        }
+        // 身份背景图静态资源映射
+        String identityBgAbsolutePath = new File(identityBgPath).getAbsolutePath();
+        String identityBgFileUrl = "file:" + identityBgAbsolutePath.replace("\\", "/") + "/";
 
-        // 确保上传目录存在
-        if (!baseDir.exists()) {
-            boolean created = baseDir.mkdirs();
-            if (created) {
-                logger.info("上传目录不存在，已自动创建：{}", absolutePath);
-            } else {
-                logger.error("创建上传目录失败：{}", absolutePath);
-            }
-        }
+        // 使用相对路径，不包含context-path
+        registry.addResourceHandler("/images/identity-bg/**")
+                .addResourceLocations(identityBgFileUrl)
+                .setCachePeriod(3600);
+        logger.info("身份背景图映射: /images/identity-bg/** -> {}", identityBgFileUrl);
 
-        // 处理图片目录
-        String imageDir = absolutePath + "identity-bg" + File.separator;
-        File imageDirFile = new File(imageDir);
-        if (!imageDirFile.exists()) {
-            boolean created = imageDirFile.mkdirs();
-            if (created) {
-                logger.info("图片目录不存在，已自动创建：{}", imageDir);
-            } else {
-                logger.error("创建图片目录失败：{}", imageDir);
-            }
-        }
+        // 分类图片静态资源映射
+        String categoryImageAbsolutePath = new File(categoryImagePath).getAbsolutePath();
+        String categoryImageFileUrl = "file:" + categoryImageAbsolutePath.replace("\\", "/") + "/";
 
-        // 处理Windows路径分隔符
-        String fileUrl = "file:" + imageDir.replace("\\", "/");
-        logger.info("图片目录映射路径：{}", fileUrl);
+        registry.addResourceHandler("/images/category/**")
+                .addResourceLocations(categoryImageFileUrl)
+                .setCachePeriod(3600);
+        logger.info("分类图片映射: /images/category/** -> {}", categoryImageFileUrl);
 
-        // 静态资源映射配置
-        registry.addResourceHandler("/api/image/static/identity-bg/**")
-                .addResourceLocations(fileUrl)
-                .setCachePeriod(3600);  // 设置缓存时间
-
-        logger.info("静态资源映射配置完成：/api/image/static/identity-bg/** -> {}", fileUrl);
+        logger.info("静态资源映射配置完成");
     }
 }
