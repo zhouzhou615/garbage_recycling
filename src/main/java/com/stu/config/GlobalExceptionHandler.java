@@ -1,6 +1,8 @@
 package com.stu.config;
 
 
+import com.stu.exception.BusinessException;
+import com.stu.vo.ApiResponse;
 import com.stu.vo.Result;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -20,5 +22,11 @@ public class GlobalExceptionHandler {
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.joining(", "));
         return Result.error("参数验证失败: " + errorMessage);
+    }
+
+    @ResponseBody
+    @ExceptionHandler(BusinessException.class)
+    public ApiResponse<?> handleBusinessException(BusinessException ex) {
+        return ApiResponse.error(ex.getMessage());
     }
 }
