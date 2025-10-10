@@ -73,6 +73,15 @@ public class WeChatUtil {
         campus.put("errmsg", "");
         testUsers.put("test_code_campus", campus);
 
+        // 新增：企业测试代码（独立openid，避免影响现有个人/校园用户）
+        Map<String, String> enterprise = new HashMap<>();
+        enterprise.put("openid", "test_enterprise_openid");
+        enterprise.put("session_key", "test_enterprise_session");
+        enterprise.put("unionid", "test_enterprise_union");
+        enterprise.put("errcode", "0");
+        enterprise.put("errmsg", "");
+        testUsers.put("test_code_enterprise", enterprise);
+
         logger.info("初始化测试用户完成，测试模式: {}，可用测试code: {}", testMode, testUsers.keySet());
     }
 

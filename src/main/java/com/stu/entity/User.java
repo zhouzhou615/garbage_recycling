@@ -56,6 +56,26 @@ public class User implements Serializable {
             example = "{\"studentId\":\"2024001001\",\"grade\":\"大三\"}")
     private String extendedInfo;
 
+    @TableField("user_type")
+    @Schema(description = "用户类型：personal-个人，campus-校园，enterprise-企业", example = "enterprise")
+    private String userType;
+
+    @TableField("company_name")
+    @Schema(description = "公司名称（企业用户必填）", example = "某某环保科技有限公司")
+    private String companyName;
+
+    @TableField("unified_social_credit_code")
+    @Schema(description = "统一社会信用代码（企业用户必填）", example = "91310000MA1K123456")
+    private String unifiedSocialCreditCode;
+
+    @TableField("invoice_title")
+    @Schema(description = "发票抬头（企业用户开票使用）", example = "某某环保科技有限公司")
+    private String invoiceTitle;
+
+    @TableField("tax_number")
+    @Schema(description = "税号/纳税人识别号（企业用户开票使用）", example = "91310000MA1K123456")
+    private String taxNumber;
+
     @JsonIgnore
     @TableField("deleted")
     @TableLogic

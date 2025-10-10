@@ -145,3 +145,65 @@ Authorization: Bearer {{campus_token}}
     client.global.set("campus_dormitory_order_no", response.body.data.orderNo);
   });
 %}
+
+### 8. 登录企业用户（不影响现有个人/校园用户）
+POST http://localhost:8080/api/auth/wechat/login
+Content-Type: application/x-www-form-urlencoded
+
+# 使用测试模式的动态code创建一个全新企业用户，并直接设置企业字段
+code=test_code_enterprise&nickname=测试企业用户&avatarUrl=http://example.com/enterprise1.jpg&userType=enterprise&companyName=某某环保科技有限公司&unifiedSocialCreditCode=91310000MA1K123456&invoiceTitle=某某环保科技有限公司&taxNumber=91310000MA1K123456
+
+> {%
+  client.test("企业登录成功", function() {
+    client.assert(response.status === 200, "状态应为200");
+    client.global.set("token", response.body.data.token); // 供后续企业接口使用
+  });
+%}
+
+### 9. 企业批量回收下单
+POST http://localhost:8080/api/enterprise/orders/bulk
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "items": [
+    {"category": "waste_paper", "quantity": 10, "weightKg": 100},
+    {"category": "plastic_bottle", "quantity": 5, "weightKg": 50}
+  ],
+  "totalWeight": 150,
+  "weightUnit": "KG",
+  "invoiceRequired": true,
+  "pickupAddress": "上海市浦东新区世纪大道100号",
+  "contactPerson": "李四",
+  "contactPhone": "13812345678",
+  "scheduleTime": "2025-10-11T18:00:00",
+  "invoiceInfo": {
+    "invoiceTitle": "某某环保科技有限公司",
+    "taxNumber": "91310000MA1K123456"
+  }
+}
+
+### 10. 创建定期回收计划（企业）
+POST http://localhost:8080/api/enterprise/plans
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "planName": "每周回收计划",
+  "cycleType": "WEEKLY",
+  "totalCycles": 12,
+  "nextScheduleDate": "2025-10-11",
+  "endDate": null,
+  "itemsConfig": "{\"waste_paper\":\"100kg\",\"plastic_bottle\":\"50kg\"}",
+  "invoiceConfig": "{\"invoiceTitle\":\"某某环保科技有限公司\",\"taxNumber\":\"91310000MA1K123456\"}",
+  "startImmediately": true
+}
+
+### 企业变量说明（在 http-client.private.env.json 中按需设置）
+# {
+#   "dev": {
+#     "token": "<企业JWT>",
+#     "nextHour": "2025-10-10T18:00:00",
+#     "nextDay": "2025-10-11"
+#   }
+# }

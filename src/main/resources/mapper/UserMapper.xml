@@ -12,6 +12,11 @@
         <result column="school_name" property="schoolName" />
         <result column="department" property="department" />
         <result column="extended_info" property="extendedInfo" />
+        <result column="user_type" property="userType" />
+        <result column="company_name" property="companyName" />
+        <result column="unified_social_credit_code" property="unifiedSocialCreditCode" />
+        <result column="invoice_title" property="invoiceTitle" />
+        <result column="tax_number" property="taxNumber" />
         <result column="deleted" property="deleted" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />

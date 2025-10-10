@@ -36,7 +36,7 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/wechat/login")
-    @Operation(summary = "微信登录", description = "通过微信code获取openid并完成登录，返回JWT token")
+    @Operation(summary = "微信登录", description = "通过微信code获取openid并完成登录，返回JWT token（测试模式支持 test_code_*，其中 test_code_enterprise 用于创建企业测试用户）")
     public Result wechatLogin(
             @Parameter(description = "微信登录临时code（通过wx.login获取）", required = true)
             @RequestParam String code,
@@ -47,7 +47,16 @@ public class AuthController {
             @RequestParam(required = false, defaultValue = "1") Integer identityType,
             @RequestParam(required = false) String schoolName,
             @RequestParam(required = false) String department,
-            @RequestParam(required = false) String extendedInfo) {
+            @RequestParam(required = false) String extendedInfo,
+            // 企业测试用户可选字段（仅当 code=test_code_enterprise 时生效）
+            @Parameter(description = "公司名称（仅企业测试登录时可传）")
+            @RequestParam(required = false) String companyName,
+            @Parameter(description = "统一社会信用代码（仅企业测试登录时可传）")
+            @RequestParam(required = false) String unifiedSocialCreditCode,
+            @Parameter(description = "发票抬头（仅企业测试登录时可传）")
+            @RequestParam(required = false) String invoiceTitle,
+            @Parameter(description = "税号（仅企业测试登录时可传）")
+            @RequestParam(required = false) String taxNumber) {
         try {
             logger.info("微信登录请求: code={}", code);
 
@@ -78,6 +87,15 @@ public class AuthController {
             user.setSchoolName(schoolName);
             user.setDepartment(department);
             user.setExtendedInfo(extendedInfo);
+
+            // 测试企业用户：使用 test_code_enterprise 创建独立企业账号（不影响其他用户）
+            if ("test_code_enterprise".equals(code)) {
+                user.setUserType("enterprise");
+                user.setCompanyName(companyName != null ? companyName : "测试企业有限公司");
+                user.setUnifiedSocialCreditCode(unifiedSocialCreditCode != null ? unifiedSocialCreditCode : "91310000MA1K123456");
+                user.setInvoiceTitle(invoiceTitle != null ? invoiceTitle : user.getCompanyName());
+                user.setTaxNumber(taxNumber != null ? taxNumber : user.getUnifiedSocialCreditCode());
+            }
 
             User savedUser = userService.createOrUpdateUser(user);
             logger.info("用户登录成功: userId={}, openid={}", savedUser.getId(), savedUser.getOpenid());
