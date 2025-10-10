@@ -13,8 +13,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.List;
 
+// 新增：Swagger 注解导入
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/address")
+@Tag(name = "地址管理", description = "用户收货地址的新增、列表与默认地址设置")
+@SecurityRequirement(name = "bearerAuth") // 需要JWT认证
 public class AddressController {
 
     @Autowired
@@ -26,8 +34,12 @@ public class AddressController {
      * 创建地址
      */
     @PostMapping("/create")
-    public Result create(@RequestBody @Valid AddressCreateDTO dto,
-                         @RequestHeader("Authorization") String authHeader) {
+    @Operation(summary = "创建地址", description = "新增用户收货地址，支持设置为默认地址")
+    public Result create(
+            @Parameter(description = "地址创建参数", required = true)
+            @RequestBody @Valid AddressCreateDTO dto,
+            @Parameter(description = "请求头中的授权信息，格式为 Bearer {token}", required = true)
+            @RequestHeader("Authorization") String authHeader) {
         Long userId = getUserId(authHeader);
         // 处理默认地址：如果本次创建的是默认，则先清除该用户已有默认
         if (dto.getIsDefault() != null && dto.getIsDefault() == 1) {
@@ -56,7 +68,10 @@ public class AddressController {
      * 地址列表
      */
     @GetMapping("/list")
-    public Result list(@RequestHeader("Authorization") String authHeader) {
+    @Operation(summary = "地址列表", description = "查询当前登录用户的所有收货地址")
+    public Result list(
+            @Parameter(description = "请求头中的授权信息，格式为 Bearer {token}", required = true)
+            @RequestHeader("Authorization") String authHeader) {
         Long userId = getUserId(authHeader);
         List<UserAddress> list = userAddressService.listByUserId(userId);
         return Result.success().put("addresses", list);
@@ -66,8 +81,12 @@ public class AddressController {
      * 设置默认地址
      */
     @PostMapping("/default/{id}")
-    public Result setDefault(@PathVariable Long id,
-                             @RequestHeader("Authorization") String authHeader) {
+    @Operation(summary = "设置默认地址", description = "将指定地址设为默认地址，并取消其他地址的默认标记")
+    public Result setDefault(
+            @Parameter(description = "地址ID", required = true)
+            @PathVariable Long id,
+            @Parameter(description = "请求头中的授权信息，格式为 Bearer {token}", required = true)
+            @RequestHeader("Authorization") String authHeader) {
         Long userId = getUserId(authHeader);
         UserAddress address = userAddressService.getById(id);
         if (address == null) {
@@ -90,4 +109,3 @@ public class AddressController {
         return jwtUtil.getUserIdFromToken(token);
     }
 }
-
