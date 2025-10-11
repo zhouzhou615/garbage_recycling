@@ -15,7 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/order")
-@Tag(name = "订单管理接口", description = "个人回收订单的创建、查询、取消等操作")
+@Tag(name = "个人订单接口", description = "个人回收订单的创建、查询、取消等操作")
 @SecurityRequirement(name = "bearerAuth") // 需JWT认证
 public class OrderController {
 
